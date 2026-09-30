@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { getHouseLayout } from './layout.js';
 import { addRetainedStair } from './shared-stair.js';
 import { addLaundryAppliances } from './laundry-fixtures.js';
+import { addUtilitySink } from './utility-sink.js';
 
 const PALETTES = {
   oak: { wood: '#cfad7d', fabric: '#e5dfd2', accent: '#85957f', wall: '#f3f0e8' },
@@ -398,6 +399,7 @@ export function createHouse(options = {}) {
   const { stairWall } = addRetainedStair({ group, loft, furniture, layout, wallMaterial: materials.wall, baseMaterial: stone, landingMaterial: paleWood, staircaseName: 'staircase' });
 
   addLaundryAppliances(furniture, layout.fixtures);
+  if (layout.utilitySink) addUtilitySink(furniture, layout.utilitySink);
 
   const kitchenDoor = layout.doors.kitchen;
   const bathroomDoor = layout.doors.bathroom;
@@ -408,8 +410,8 @@ export function createHouse(options = {}) {
   function partitionAcross(x1, x2, z, hatch = false) {
     if (x2 <= x1) return;
     if (hatch) {
-      const hx1 = layout.dividerX + 0.07;
-      const hx2 = Math.min(hx1 + 0.62, x2 - 0.04);
+      const hx1 = layout.utilityWindow.minX;
+      const hx2 = layout.utilityWindow.maxX;
       box(partitions, hx1 - x1, dividerHeight, 0.1, (x1 + hx1) / 2, dividerHeight / 2, z, materials.wall).name = 'rear-partition-wall';
       box(partitions, x2 - hx2, dividerHeight, 0.1, (hx2 + x2) / 2, dividerHeight / 2, z, materials.wall).name = 'rear-partition-wall';
       box(partitions, hx2 - hx1, 1.28, 0.1, (hx1 + hx2) / 2, 0.64, z, materials.wall).name = 'rear-partition-wall';
@@ -484,19 +486,21 @@ export function createHouse(options = {}) {
     const ring = mesh(new THREE.TorusGeometry(0.075, 0.0025, 6, 28), metal, kitchenCounter, x, 0.918, 0);
     ring.rotation.x = -Math.PI / 2;
   }
-  const kitchenSink = new THREE.Group();
-  kitchenSink.name = 'kitchen-sink';
-  kitchenSink.position.set(-counterWidth * 0.28, 0, 0.02);
-  kitchenCounter.add(kitchenSink);
-  box(kitchenSink, 0.43, 0.025, 0.34, 0, 0.906, 0, metal, 0.025).name = 'kitchen-sink-rim';
-  box(kitchenSink, 0.38, 0.009, 0.29, 0, 0.923, 0, charcoal, 0.029).name = 'kitchen-sink-bowl';
-  box(kitchenSink, 0.31, 0.008, 0.22, 0, 0.929, 0.015, glass, 0.027);
-  const kitchenFaucet = new THREE.Group();
-  kitchenFaucet.name = 'kitchen-faucet';
-  kitchenSink.add(kitchenFaucet);
-  bar(kitchenFaucet, [0, 0.91, -0.2], [0, 1.19, -0.2], 0.011, metal);
-  bar(kitchenFaucet, [0, 1.19, -0.2], [0, 1.19, -0.01], 0.011, metal);
-  bar(kitchenFaucet, [0, 1.19, -0.01], [0, 1.135, -0.01], 0.011, metal);
+  if (layout.kitchen.sink) {
+    const kitchenSink = new THREE.Group();
+    kitchenSink.name = 'kitchen-sink';
+    kitchenSink.position.set(-counterWidth * 0.28, 0, 0.02);
+    kitchenCounter.add(kitchenSink);
+    box(kitchenSink, 0.43, 0.025, 0.34, 0, 0.906, 0, metal, 0.025).name = 'kitchen-sink-rim';
+    box(kitchenSink, 0.38, 0.009, 0.29, 0, 0.923, 0, charcoal, 0.029).name = 'kitchen-sink-bowl';
+    box(kitchenSink, 0.31, 0.008, 0.22, 0, 0.929, 0.015, glass, 0.027);
+    const kitchenFaucet = new THREE.Group();
+    kitchenFaucet.name = 'kitchen-faucet';
+    kitchenSink.add(kitchenFaucet);
+    bar(kitchenFaucet, [0, 0.91, -0.2], [0, 1.19, -0.2], 0.011, metal);
+    bar(kitchenFaucet, [0, 1.19, -0.2], [0, 1.19, -0.01], 0.011, metal);
+    bar(kitchenFaucet, [0, 1.19, -0.01], [0, 1.135, -0.01], 0.011, metal);
+  }
   box(kitchenCounter, counterWidth, 0.43, 0.028, 0, 1.17, -0.26, white);
   box(kitchenCounter, counterWidth, 0.035, 0.23, 0, 1.55, -0.18, materials.wood, 0.008);
   plant(kitchenCounter, -counterWidth * 0.32, 1.57, -0.18, 0.25);

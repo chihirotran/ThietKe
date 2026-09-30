@@ -108,7 +108,7 @@ test('renders correct appliance doors, clear operating space and unobstructed wa
   }
 });
 
-test('renders a real kitchen sink and basin separate from the hob in all three designs', () => {
+test('keeps the reference dishwashing sink in the utility room and other sinks beside their kitchens', () => {
   const previousDocument = globalThis.document;
   globalThis.document = { createElement: () => ({ width: 0, height: 0,
     getContext: () => new Proxy({}, { get: () => () => {} }),
@@ -120,6 +120,12 @@ test('renders a real kitchen sink and basin separate from the hob in all three d
         const label = `${variant} ${house.layout.width} × ${house.layout.depth}`;
         house.group.updateMatrixWorld(true);
         const kitchen = house.group.getObjectByName('kitchen-fixtures');
+        if (variant === 'reference') {
+          assert.equal(kitchen?.getObjectByName('kitchen-sink'), undefined, `${label}: duplicate kitchen sink`);
+          assert.ok(house.group.getObjectByName('utility-sink-bowl'), `${label}: utility basin is missing`);
+          assert.ok(house.group.getObjectByName('utility-water-pump'), `${label}: water pump is missing`);
+          continue;
+        }
         const sink = kitchen?.getObjectByName('kitchen-sink');
         assert.ok(sink, `${label}: kitchen sink is missing`);
         const bowl = sink.getObjectByName('kitchen-sink-bowl') ?? sink.getObjectByName('sink-bowl');

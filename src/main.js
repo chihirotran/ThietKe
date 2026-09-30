@@ -47,8 +47,8 @@ const zoneInfo = {
   living: ['Sinh hoạt & làm việc', 'Bàn cho một người, hai màn hình và hệ tủ gỗ dưới gác.'],
   loft: ['Gác ngủ thu gọn', 'Gác rút ngắn 1/3, giường nằm ngang và lan can trắng theo ảnh mẫu.'],
   stairs: ['Cầu thang hiện trạng', 'Giữ thang sắt và tường bên trái khi đi lên, theo video bạn gửi.'],
-  utility: ['Giặt, sấy & lọc nước', 'Máy giặt cửa trên, máy sấy cửa ngang và máy lọc nước; chừa lối tới bếp và WC.'],
-  kitchen: ['Phòng bếp', 'Bếp riêng phía sau, có chậu rửa và vòi nước bên cạnh khu nấu.'],
+  utility: ['Giặt, sấy & rửa bát', 'Dãy giặt, sấy sát cửa sổ giữa bếp và WC; bồn rửa bát và máy bơm ở góc cuối bên cạnh WC.'],
+  kitchen: ['Phòng bếp', 'Khu nấu và tủ lạnh phía sau; bồn rửa bát nằm ở phòng giặt bên ngoài.'],
   bathroom: ['Phòng tắm & WC', 'Bên trái bếp; cửa mở ra khoảng máy giặt/cầu thang theo bạn xác nhận.'],
 };
 
@@ -108,8 +108,8 @@ function updateDesignUI() {
   $('.space-button[data-zone="stairs"] small').textContent = 'Giữ thang và tường theo video';
   $('.space-button[data-zone="kitchen"] strong').textContent = proposed ? 'Bếp mở' : 'Phòng bếp';
   $('.space-button[data-zone="kitchen"] small').textContent = proposed ? 'Liên thông với khu ăn' : 'Phòng đối diện cửa';
-  $('.space-button[data-zone="utility"] strong').textContent = 'Giặt, sấy & lọc nước';
-  $('.space-button[data-zone="utility"] small').textContent = proposed ? 'Khu sau nhà' : 'Giữa phòng chính và bếp';
+  $('.space-button[data-zone="utility"] strong').textContent = modern ? 'Giặt, sấy & lọc nước' : 'Giặt, sấy & rửa bát';
+  $('.space-button[data-zone="utility"] small').textContent = proposed ? 'Khu sau nhà' : modern ? 'Giữa phòng chính và bếp' : 'Cửa sổ giữa bếp và WC';
   $('.space-button[data-zone="dining"]').hidden = !proposed;
   $('.space-button[data-zone="living"] strong').textContent = proposed ? 'Phòng khách' : 'Không gian sinh hoạt';
   $('.space-button[data-zone="living"] small').textContent = proposed ? 'Sofa chữ L và bàn trà' : 'Thư giãn & làm việc';
@@ -693,7 +693,7 @@ function createViewer() {
         position.set(width * 1.2, loftHeight + 3.1, centerZ - 2.8);
       } else if (zone === 'utility') {
         target.set(centerX, 0.9, centerZ);
-        position.set(width * 1.3, loftHeight + 4, centerZ + (currentDesign === 'proposed' ? 2.7 : -2.7));
+        position.set(width * 1.3, loftHeight + 4, centerZ + (currentDesign === 'modern' ? -2.7 : 2.7));
       } else if (zone === 'kitchen' || zone === 'bathroom') {
         target.set(centerX, 0.8, centerZ);
         position.set(centerX + (zone === 'bathroom' ? -3.8 : 3.8), 4.9, centerZ + (zone === 'kitchen' && currentDesign === 'proposed' ? 4.2 : -4.2));

@@ -4,7 +4,7 @@ import { getSharedStructure } from './shared-structure.js';
 const rect = (minX, maxX, minZ, maxZ) => ({ minX, maxX, minZ, maxZ });
 const area = r => (r.maxX - r.minX) * (r.maxZ - r.minZ);
 export function getModernLayout(options = {}) {
-  const original = getHouseLayout({ ...options, occupants: options.occupants ?? 1 });
+  const original = getHouseLayout({ ...options, occupants: options.occupants ?? 1, utilityArrangement: 'standard' });
   const { left, right, front, loftHeight, upperHeight } = original;
   const doorLeft = original.doors.utility.x - original.doors.utility.width / 2;
   const { stairs, loft: sharedLoft } = getSharedStructure(options);

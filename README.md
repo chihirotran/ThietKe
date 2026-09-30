@@ -79,7 +79,8 @@ Không chọn **Deploy from a branch → main / root**, vì đó là mã nguồn
 - Chọn khu sinh hoạt, gác ngủ, cầu thang, khoảng giặt/lối đi, phòng bếp hoặc phòng tắm/WC để đến góc nhìn tương ứng.
 - Chuyển giữa **Một người · theo ảnh** và **Hai chỗ làm việc** để so sánh phương án. Lựa chọn được lưu trong trình duyệt.
 - Bật/tắt gác, tường cắt, chú thích và ánh sáng ấm; đổi gỗ sáng/gỗ tối.
-- Khu giặt bố trí máy giặt cửa trên, máy sấy cửa ngang và máy lọc nước cạnh nhau; không đặt thiết bị hoặc mặt bàn lên trên nắp máy giặt. Mẫu 01 và 02 có chậu rửa bếp và vòi nước riêng.
+- Mẫu 01: máy giặt cửa trên, máy sấy cửa ngang và máy lọc nước đặt sát vách có cửa sổ giữa cửa bếp và WC. Bồn rửa bát duy nhất nằm ở góc cuối phòng giặt cạnh WC, có máy bơm dưới bồn; bếp để dành mặt bàn cho khu nấu. Kích thước bồn và bơm là ước lượng. Khi thử nhà hẹp dưới khoảng 3,9 m, dãy máy chuyển về vị trí cũ để chừa hai cửa; nhà thực tế 3,91 m đủ chỗ đặt dãy máy sát cửa sổ.
+- Không đặt thiết bị hoặc mặt bàn lên nắp máy giặt. Mẫu 02 và 03 giữ chậu rửa trong bếp và bố trí thiết bị riêng như trước.
 - **Lưu ảnh:** tải ảnh PNG của góc nhìn hiện tại, có chú thích kích thước.
 - **Ảnh mẫu & hiện trạng:** xem riêng ảnh mẫu thiết kế, hai ảnh gốc và video. Thẻ **Khu sau · 0:10** chuyển đến đoạn cầu thang, máy giặt và bếp để đối chiếu. Video được chuyển mã H.264 để tương thích trình duyệt; nội dung không thay đổi.
 - Khi canvas được chọn, phím mũi tên điều khiển góc nhìn; `+` / `-` phóng to và thu nhỏ.

@@ -8,7 +8,7 @@ const center = r => [(r.minX + r.maxX) / 2, (r.minZ + r.maxZ) / 2];
 
 export function createModernHouse(options = {}) {
   const layout = getModernLayout(options);
-  const house = createHouse({ ...options, occupants: 1 });
+  const house = createHouse({ ...options, occupants: 1, utilityArrangement: 'standard' });
   const { group, walls, loft, furniture, partitions, materials } = house;
   const { left, right, front, loftHeight, upperHeight } = layout;
   const originalResources = new Set();

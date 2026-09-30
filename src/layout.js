@@ -40,14 +40,33 @@ export function getHouseLayout(options = {}) {
   const bathroom = bounds(left, dividerX, rear, roomFront);
   const utility = bounds(left, right, roomFront, utilityFront);
   const bathroomDoorX = dividerX - 0.45;
-  const washerBounds = bounds(left + 0.4, left + 1, roomFront + 0.73, roomFront + 1.35);
-  const dryerBounds = bounds(left + 1.04, left + 1.64, roomFront + 0.73, roomFront + 1.35);
-  const purifierBounds = bounds(left + 0.08, left + 0.36, roomFront + 0.73, roomFront + 1.13);
+  const existingUtility = options.utilityArrangement !== 'standard';
+  const windowLeft = dividerX + 0.07;
+  const windowRight = Math.min(windowLeft + 0.62, kitchenDoorX - 0.45);
+  const utilityWindow = { minX: windowLeft, maxX: windowRight, z: roomFront, sillHeight: 1.28, headHeight: 1.92 };
+  const rowMinX = bathroomDoorX + 0.35;
+  const rowMaxX = kitchenDoorX - 0.41;
+  const windowRow = existingUtility && rowMaxX - rowMinX >= 1.62;
+  const rowLeft = rowMinX + Math.min(0.06, (rowMaxX - rowMinX - 1.56) / 2);
+  const washerBounds = windowRow
+    ? bounds(rowLeft + 0.32, rowLeft + 0.92, roomFront + 0.08, roomFront + 0.7)
+    : bounds(left + 0.4, left + 1, roomFront + 0.73, roomFront + 1.35);
+  const dryerBounds = windowRow
+    ? bounds(rowLeft + 0.96, rowLeft + 1.56, roomFront + 0.08, roomFront + 0.7)
+    : bounds(left + 1.04, left + 1.64, roomFront + 0.73, roomFront + 1.35);
+  const purifierBounds = windowRow
+    ? bounds(rowLeft, rowLeft + 0.28, roomFront + 0.08, roomFront + 0.48)
+    : bounds(left + 0.08, left + 0.36, roomFront + (existingUtility ? 0.67 : 0.73), roomFront + (existingUtility ? 1.07 : 1.13));
+  const applianceRotation = windowRow ? 0 : Math.PI;
   const appliances = {
-    washer: { bounds: washerBounds, rotationY: Math.PI, type: 'top-loading', height: 1.04, lidClearance: { bounds: washerBounds, minY: 0.9, maxY: 1.48 } },
-    dryer: { bounds: dryerBounds, rotationY: Math.PI, type: 'front-loading', height: 0.85 },
-    waterPurifier: { bounds: purifierBounds, rotationY: Math.PI, type: 'water-purifier', height: 1 },
+    washer: { bounds: washerBounds, rotationY: applianceRotation, type: 'top-loading', height: 1.04, lidClearance: { bounds: washerBounds, minY: 0.9, maxY: 1.48 } },
+    dryer: { bounds: dryerBounds, rotationY: applianceRotation, type: 'front-loading', height: 0.85 },
+    waterPurifier: { bounds: purifierBounds, rotationY: existingUtility ? 0 : applianceRotation, type: 'water-purifier', height: 1 },
   };
+  const utilitySink = existingUtility ? {
+    bounds: bounds(left + 0.07, Math.min(left + 0.61, bathroomDoorX - 0.405), roomFront + 0.14, roomFront + (windowRow ? 0.84 : 0.65)),
+    rotationY: Math.PI / 2, height: 0.88,
+  } : null;
   const counterLength = Math.min(1.55, roomFront - rear - 0.65);
   const counterX = kitchen.minX + 0.35, counterZ = (rear + roomFront) / 2;
   const sinkZ = counterZ + counterLength * 0.28;
@@ -72,7 +91,8 @@ export function getHouseLayout(options = {}) {
     circulation: { main: mainCorridor },
     fixtures: appliances,
     laundry: appliances,
-    kitchen: { counters: [{ bounds: bounds(counterX - 0.3, counterX + 0.3, counterZ - counterLength / 2, counterZ + counterLength / 2), face: 'right' }], sink: { bounds: kitchenSink, rotationY: Math.PI / 2 } },
+    utilitySink, utilityWindow,
+    kitchen: { counters: [{ bounds: bounds(counterX - 0.3, counterX + 0.3, counterZ - counterLength / 2, counterZ + counterLength / 2), face: 'right' }], sink: existingUtility ? null : { bounds: kitchenSink, rotationY: Math.PI / 2 } },
     doors: {
       utility: { x: kitchenDoorX, z: utilityFront, width: 0.82, height: doorHeight, axis: 'x', dividerThickness: 0.1 },
       kitchen: { x: kitchenDoorX, z: roomFront, width: 0.82, height: doorHeight, axis: 'x', dividerThickness: 0.1 },
@@ -80,7 +100,9 @@ export function getHouseLayout(options = {}) {
     },
     cameras: {
       living: { position: [0, 1.65, front - 0.55], target: [0, loftHeight - 0.25, utilityFront + 0.9] },
-      utility: { position: [kitchenDoorX, 1.55, roomFront + 0.33], target: [left + 0.86, 1, roomFront + 1.04] },
+      utility: existingUtility
+        ? { position: [kitchenDoorX, 1.55, roomFront + 1.1], target: [(washerBounds.minX + washerBounds.maxX) / 2, 0.94, (washerBounds.minZ + washerBounds.maxZ) / 2] }
+        : { position: [kitchenDoorX, 1.55, roomFront + 0.33], target: [left + 0.86, 1, roomFront + 1.04] },
       loft: { position: [landing.minX + 0.44, loftHeight + 1.35, landing.maxZ - 0.15], target: [(bed.minX + bed.maxX) / 2, loftHeight + 0.45, (bed.minZ + bed.maxZ) / 2] },
       kitchen: { position: [kitchenDoorX, 1.58, roomFront + 0.35], target: [kitchenCenter[0], 1.1, rear + 0.4] },
       bathroom: { position: [bathroomCenter[0] + 0.23, 1.5, roomFront - 0.78], target: [bathroomCenter[0], 0.95, rear + 0.48] },
