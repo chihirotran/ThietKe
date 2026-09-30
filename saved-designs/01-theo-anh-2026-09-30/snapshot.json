@@ -1,0 +1,39 @@
+{
+  "name": "01 · Theo ảnh mẫu — bản đã lưu",
+  "savedOn": "2026-09-30",
+  "dimensions": {
+    "width": 3.91,
+    "depth": 11,
+    "loftHeight": 2.5,
+    "upperHeight": 2.3
+  },
+  "occupants": 1,
+  "description": "Bản được người dùng yêu cầu lưu trước khi thiết kế phương án hiện đại. Ngang suy ra từ 43 m² / 11 m. Chiều sâu gác khoảng nửa phòng khách.",
+  "files": {
+    ".gitignore": "0f46ea6e92f96be8cd36e6a0b132453226cfdcdf372dd25a534596ab45b816af",
+    "README.md": "edfe5ef9dcd86b45ab5a89303f738294ccc463a824492559f34c7945c39b209a",
+    "index.html": "71f8d97290ec1b0fcb438390d1b791113435c33ee6108d40c51a4804c8cdfd3e",
+    "package.json": "de9fec9f9acc4f1c41b8f602d2c4079288bf4ffaa88d4e7300c10776c1684850",
+    "pnpm-lock.yaml": "4662b2c144f62d71ceb4deebf70cceaf365f95b30a5508a11c52f35b5f1fb7a3",
+    "preview.png": "302e7270485fd49615768ab48a279d81be14a11977c8e0f94ed0125c2848e35f",
+    "public/favicon.svg": "aeaca00ba6211af5e57670a87b0254d4fddb561e982afbdc6c9abc2b9022bf5c",
+    "public/fonts/OFL.txt": "6b7f8f73609a25ea78c891e34cf37b06f8a676b7ea986e941e43b009110f2a85",
+    "public/fonts/be-vietnam-pro-400.ttf": "4ad53eac036092be79a34b5fa0aa32d0ebb3c7e5df4bc058764f5614fbf148a0",
+    "public/fonts/be-vietnam-pro-500.ttf": "557a1c42a7f8eb83f84255d475017b1235c1101b899367f974a1cbfa19cd7c3d",
+    "public/fonts/be-vietnam-pro-600.ttf": "cbf437bf71c8536a7aaed632dce2583ea5ec97c07efffc625c31991d1027ba3b",
+    "public/fonts/be-vietnam-pro-700.ttf": "aef76cd15b8c9faa1ff21951bb71963a774aa381526c557e5a52f38d430c4650",
+    "public/references/design-target.png": "b9b659897156787229b552d43511cdfb0f30b97c40f06f8ca6aa70ebdcb9df60",
+    "public/references/house.mp4": "3aa42ca46e50a2485952157740c2d0c881ddeaf543b5645905bab0b635893f36",
+    "public/references/nha1.jpeg": "9fa92a6f4e0e1a0bcb2a706a77d5676e1f488b36a1a5f00c67c12f0a576ecfb8",
+    "public/references/nha2.jpeg": "22b0a081a979a387be4ec367df9c91232e2c68cb468d7a7da9581bd130d8a795",
+    "src/dimensions.js": "e75a3591111787008fba17cb071013c42c1f7d2dcefee04ad662afb16a014187",
+    "src/house.js": "6f90b6dae9c3fd8d6f6d7cb71f206255b6fa78185f287944a3e5d158ace664bc",
+    "src/layout.js": "7ee068d92e2df8b569b54391a82157dbd8029edd2c21f3e6c41b5a84bed471f6",
+    "src/main.js": "b5c1c1261e603cde47b501328a3b6c133fd6b7793cb1588b8aafaf223517823e",
+    "src/style.css": "97f3a78a29a8ab95b9fcc7518d5a3ff8f73e6587133395b692eb4a3698ba23a6",
+    "start.sh": "ef4953feb645b7c878f7f7bfebcf26dd605971558b15f8f1f580f5d5d42f7f36",
+    "tests/dimensions.test.js": "348dfcbb0188b2edc56a20f47c560be0228839bcb5d5aee313920c7dd249493f",
+    "tests/house-layout.test.js": "811156d9adef0956574b2078bf5e6cbd5de2343dba15056937f2dd539d06514b",
+    "vite.config.js": "43deb88a45181e641b2fff118cc58ed8931112e56ecdb07c882afc641602d3d9"
+  }
+}

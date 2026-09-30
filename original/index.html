@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Bản vẽ 3D Cải Tạo Căn Hộ</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  </head>
+  <body>
+    <!-- HƯỚNG DẪN CHỈNH SỬA CHO BẠN:
+         - position="X Y Z": X là sang trái/phải, Y là lên/xuống, Z là tiến/lùi.
+         - width (rộng), height (cao), depth (độ dày/sâu): Đơn vị tính bằng mét (m).
+         - Bạn có thể thay đổi các con số này để ép kích thước khớp với thực tế. -->
+
+    <a-scene background="color: #F8F9FA">
+      
+      <!-- Camera góc nhìn mặc định -->
+      <a-entity position="0 1.6 2">
+        <a-camera></a-camera>
+      </a-entity>
+
+      <!-- KHUNG NHÀ CƠ BẢN -->
+      <!-- Sàn nhà -->
+      <a-plane position="0 0 -3" rotation="-90 0 0" width="3.5" height="8" color="#CFD8DC"></a-plane>
+      <!-- Tường trái -->
+      <a-box position="-1.75 2 -3" width="0.1" height="4" depth="8" color="#FFFFFF"></a-box>
+      <!-- Tường phải -->
+      <a-box position="1.75 2 -3" width="0.1" height="4" depth="8" color="#FFFFFF"></a-box>
+      <!-- Tường cuối (Bếp) -->
+      <a-box position="0 2 -7" width="3.5" height="4" depth="0.1" color="#ECEFF1"></a-box>
+
+      <!-- GÁC LỬNG (Đã dọn sạch tủ cũ) -->
+      <!-- Sàn gác -->
+      <a-box position="0 2 -1" width="3.5" height="0.15" depth="2.5" color="#D7CCC8"></a-box>
+      <!-- Lan can -->
+      <a-box position="0 2.4 0.25" width="3.5" height="0.8" depth="0.05" color="#B0BEC5" opacity="0.6"></a-box>
+      <!-- Nệm ngủ (Giữa gác) -->
+      <a-box position="0 2.15 -1" width="1.6" height="0.2" depth="2" color="#90CAF9"></a-box>
+
+      <!-- TẦNG TRỆT - KHU VỰC LÀM VIỆC & LƯU TRỮ -->
+      <!-- Bàn làm việc (Bên trái dưới gác) -->
+      <a-box position="-0.9 0.75 -1" width="1.4" height="0.05" depth="0.7" color="#8D6E63"></a-box>
+      <a-box position="-1.5 0.35 -1" width="0.05" height="0.75" depth="0.7" color="#424242"></a-box> <!-- Chân bàn -->
+      <a-box position="-0.3 0.35 -1" width="0.05" height="0.75" depth="0.7" color="#424242"></a-box> <!-- Chân bàn -->
+      <!-- 2 Màn hình 27 inch -->
+      <a-box position="-1.1 1.1 -1.3" width="0.6" height="0.35" depth="0.03" color="#212121"></a-box>
+      <a-box position="-0.5 1.1 -1.25" width="0.6" height="0.35" depth="0.03" rotation="0 -25 0" color="#212121"></a-box>
+      
+      <!-- Bảng Pegboard gắn tường (Treo vợt, túi gym, mũ bảo hiểm) -->
+      <a-plane position="-1.69 1.4 -1" rotation="0 90 0" width="1.2" height="0.8" color="#FFCC80"></a-plane>
+
+      <!-- HỆ TỦ QUẦN ÁO MỚI (Bên phải, thay chỗ sofa cũ) -->
+      <a-box position="1.1 1.5 -1" width="1" height="3" depth="0.6" color="#EFEBE9"></a-box>
+
+      <!-- KHU VỰC CẦU THANG & HÀNH LANG -->
+      <!-- Cầu thang (Trái) -->
+      <a-box position="-1.2 1 -2.8" rotation="45 0 0" width="0.8" height="2.8" depth="0.1" color="#9E9E9E"></a-box>
+      <!-- Máy giặt -->
+      <a-box position="-1.2 0.4 -3.6" width="0.6" height="0.8" depth="0.6" color="#FAFAFA"></a-box>
+      <!-- Kệ giày & đồ lặt vặt (Mới thêm cạnh máy giặt) -->
+      <a-box position="-1.2 0.4 -3" width="0.6" height="0.8" depth="0.3" color="#BCAAA4"></a-box>
+
+      <!-- KHU VỰC BẾP (Đã quy hoạch gọn gàng) -->
+      <!-- Bàn bếp & Bếp gas -->
+      <a-box position="-0.8 0.8 -6.5" width="1.5" height="0.1" depth="0.6" color="#90A4AE"></a-box>
+      <!-- Tủ lạnh -->
+      <a-box position="1.2 0.9 -6.5" width="0.6" height="1.8" depth="0.6" color="#EEEEEE"></a-box>
+      <!-- Kệ inox để đồ hộp, xoong nồi (Mới) -->
+      <a-box position="-1.6 1.2 -6" width="0.3" height="1.6" depth="0.6" color="#B0BEC5"></a-box>
+
+      <!-- Ánh sáng (Ấm áp, hiện đại) -->
+      <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
+      <a-light type="point" position="0 3 0" color="#FFECB3" intensity="0.5"></a-light>
+      <a-light type="point" position="0 3 -5" color="#FFF" intensity="0.5"></a-light>
+
+    </a-scene>
+  </body>
+</html>
