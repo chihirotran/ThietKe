@@ -46,7 +46,17 @@ Kết nối kho Git với dịch vụ hosting và chọn nhánh `main`:
 
 Thư mục `dist/` chứa toàn bộ web tĩnh, gồm ảnh, video, phông chữ và bản thiết kế tải về. Hosting có thể tự build khi nhận commit mới từ Git; không cần máy chủ Node.js sau khi build. `dist/` không được commit vì được tạo lại từ mã nguồn.
 
-Các đường dẫn tài nguyên dùng địa chỉ tương đối, hỗ trợ cả tên miền riêng và thư mục con như `/ThietKe/`. Nếu dùng GitHub Pages, chọn nguồn **GitHub Actions** rồi cấu hình build và upload thư mục `dist/`; chế độ xuất bản trực tiếp từ nhánh mã nguồn sẽ không chạy bước build Vite.
+Các đường dẫn tài nguyên dùng địa chỉ tương đối, hỗ trợ cả tên miền riêng và thư mục con như `/ThietKe/`.
+
+### GitHub Pages
+
+Workflow `.github/workflows/deploy-pages.yml` tự cài thư viện, chạy kiểm tra, build và xuất bản `dist/` mỗi khi push lên `main`. Không cần đưa `dist/` vào Git.
+
+1. Trong repository, mở **Settings → Pages → Build and deployment → Source**, chọn **GitHub Actions**.
+2. Mở **Actions → Deploy GitHub Pages → Run workflow** để xuất bản lần đầu. Các lần push sau tự triển khai.
+3. Khi workflow hoàn tất, mở https://chihirotran.github.io/ThietKe/.
+
+Không chọn **Deploy from a branch → main / root**, vì đó là mã nguồn Vite chưa build. Mỗi lượt triển khai tạo một artifact `github-pages` chứa bản web tĩnh đã build. Workflow dùng quyền có sẵn của repository, không cần thêm token hoặc secret.
 
 ## Số đo và hiện trạng dùng cho bản 01
 
