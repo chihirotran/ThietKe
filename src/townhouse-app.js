@@ -31,9 +31,10 @@ $('.workspace').innerHTML = `
     </div>
     <section class="sidebar-section townhouse-floors" aria-labelledby="floor-list-title"><div class="section-heading"><h2 id="floor-list-title">Khám phá từng tầng</h2><span class="subtle-label">Chạm để mở</span></div>
       <nav class="floor-stack" aria-label="Chọn tầng">${layout.floors.slice().reverse().map(f => `<button type="button" data-floor="${f.index}" aria-pressed="${f.index === 0}"><span class="floor-index">${f.index === 0 ? 'T' : `L${f.index}`}</span><span><strong>${floorNames[f.index]}</strong><small>${floorTitles[f.index]}</small></span>${icon(floorIcons[f.index])}</button>`).join('')}</nav>
-      <div class="floor-program"><span id="floor-program-title">Tầng trệt</span><p id="floor-summary"></p><ul id="room-list"></ul><div id="workspace-shortcuts" class="workspace-shortcuts" role="group" aria-label="Xem bàn riêng trong phòng ngủ"></div></div>
+      <div class="floor-program"><span id="floor-program-title">Tầng trệt</span><p id="floor-summary"></p><ul id="room-list"></ul><div id="balcony-shortcut" class="workspace-shortcuts"></div><div id="workspace-shortcuts" class="workspace-shortcuts" role="group" aria-label="Xem bàn riêng trong phòng ngủ"></div></div>
     </section>
     <section class="sidebar-section"><h2>Thang gọn hơn, mỗi phòng một bàn</h2><p class="townhouse-copy">Thu khoảng rỗng giữa hai vế thang, giữ bề rộng vế 0,85 m trong phương án. Thang máy và WC lùi 15 cm; phòng ngủ được sắp lại giường, tủ và cửa để có bàn riêng.</p><dl class="dimension-list"><div><dt>Khoảng thang & chiếu nghỉ</dt><dd>${format(layout.stairs.previousArea)} → ${format(layout.stairs.area)} m²</dd></div><div><dt>Giảm diện tích khu thang</dt><dd>≈ ${format(layout.stairs.previousArea - layout.stairs.area)} m²/tầng</dd></div><div><dt>Bàn riêng trong phòng ngủ</dt><dd>4 bàn</dd></div></dl><p class="section-note">Bàn sâu 0,5 m, có vùng kéo ghế khoảng 0,65 m. Hai phòng nhỏ dùng tủ gọn. Giường vẫn nằm lệch khỏi hình chiếu bếp nấu.</p></section>
+    <section class="sidebar-section"><h2>Mở cửa ra ban công</h2><p class="townhouse-copy">Lầu 1, 2 và 3 có ban công phía trước, lùi vào trong chiều dài nhà 11 m. Cửa mở ra khoảng đứng ngoài trời với lan can kính và cây xanh.</p><dl class="dimension-list"><div><dt>Ban công phía trước</dt><dd>3 ban công</dd></div><div><dt>Kích thước mỗi ban công</dt><dd>≈ 1,35 × 1,2 m</dd></div></dl><p class="section-note">Chọn lầu rồi bấm “Ra ban công” để xem. Sân vườn trên lầu 4 được giữ lại.</p></section>
     <section class="sidebar-section"><h2>Nền nhà & chiều cao</h2><dl class="dimension-list"><div><dt>Ngang × dài, ước tính</dt><dd>3,91 × 11 m</dd></div><div><dt>Diện tích nền</dt><dd>43 m²</dd></div><div><dt>Cao mỗi tầng, đề xuất</dt><dd>3,2 m</dd></div><div><dt>5 mặt sàn cộng lại</dt><dd>≈ 215 m²</dd></div></dl><p class="section-note">215 m² là diện tích cộng theo bao ngoài; chưa trừ thang, giếng trời và sân. Chiều ngang suy ra từ 43 ÷ 11.</p></section>
     ${paletteSection}
     <section class="sidebar-section"><label class="toggle-row" for="townhouse-warm"><span>Ánh sáng ấm</span><input id="townhouse-warm" type="checkbox" role="switch" ${settings.warmLight ? 'checked' : ''}><span class="toggle-track" aria-hidden="true"></span></label></section>
@@ -68,18 +69,36 @@ function saveSettings() {
 }
 
 function sync(next) {
-  const changed = state.floor !== next.floor || state.view !== next.view;
+  const changed = state.floor !== next.floor || state.view !== next.view || state.balconyFloor !== next.balconyFloor;
   state = next;
   const floor = layout.floors[next.floor];
+  const onBalcony = next.balconyFloor === next.floor;
   $('#viewer').dataset.view = next.view;
   $('#viewer').dataset.floor = String(next.floor);
   $$('[data-floor]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.floor) === next.floor)));
   $$('button[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === next.view)));
-  $('#view-title').textContent = next.view === 'exterior' ? 'Mặt ngoài ngôi nhà' : next.view === 'exploded' ? 'Năm tầng, một tổ ấm' : `${floorNames[next.floor]} · ${views[next.view]}`;
-  $('#view-description').textContent = ['exterior', 'exploded'].includes(next.view) ? 'Trệt + 4 lầu · 3,91 × 11 m' : floorTitles[next.floor];
+  $('#view-title').textContent = onBalcony ? `${floorNames[next.floor]} · Ban công` : next.view === 'exterior' ? 'Mặt ngoài ngôi nhà' : next.view === 'exploded' ? 'Năm tầng, một tổ ấm' : `${floorNames[next.floor]} · ${views[next.view]}`;
+  $('#view-description').textContent = onBalcony ? 'Khoảng ngoài trời phía trước · 1,35 × 1,2 m' : ['exterior', 'exploded'].includes(next.view) ? 'Trệt + 4 lầu · 3,91 × 11 m' : floorTitles[next.floor];
   $('#floor-program-title').textContent = `${floorNames[next.floor]} / ${floorTitles[next.floor]}`;
   $('#floor-summary').textContent = floor.summary;
   $('#room-list').replaceChildren(...floor.rooms.map(room => { const li = document.createElement('li'); li.textContent = room.name; return li; }));
+  $('#balcony-shortcut').replaceChildren();
+  if (floor.balcony) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.balcony = String(next.floor);
+    button.setAttribute('aria-pressed', String(onBalcony));
+    const title = document.createElement('strong');
+    title.textContent = 'Ra ban công';
+    const detail = document.createElement('span');
+    detail.textContent = '≈ 1,35 × 1,2 m · Cửa ra phía trước';
+    button.append(title, detail);
+    button.addEventListener('click', () => {
+      viewer?.setBalcony(next.floor);
+      if (window.innerWidth <= 720) $('#viewer').scrollIntoView({ block: 'start', behavior: 'auto' });
+    });
+    $('#balcony-shortcut').append(button);
+  }
   $('#workspace-shortcuts').replaceChildren(...floor.bedrooms.map(bedroom => {
     const button = document.createElement('button');
     button.type = 'button';
@@ -97,9 +116,9 @@ function sync(next) {
     });
     return button;
   }));
-  $('#scene-caption').textContent = next.workspaceId ? 'Góc học tập & làm việc riêng' : next.view === 'exterior' ? 'Mặt tiền hiện đại' : next.view === 'exploded' ? 'Xem mối liên hệ giữa các tầng' : floorNames[next.floor];
-  $('#scene-detail').textContent = next.view === 'inside' ? 'Chọn tầng để đổi cao độ' : next.view === 'plan' ? 'Mặt bằng bố trí ước lượng' : 'Chọn tầng để xem nội thất';
-  if (changed) $('#scene-status').textContent = `${views[next.view]} · ${floorNames[next.floor]}`;
+  $('#scene-caption').textContent = onBalcony ? `Ban công phía trước · ${floorNames[next.floor]}` : next.workspaceId ? 'Góc học tập & làm việc riêng' : next.view === 'exterior' ? 'Mặt tiền hiện đại' : next.view === 'exploded' ? 'Xem mối liên hệ giữa các tầng' : floorNames[next.floor];
+  $('#scene-detail').textContent = onBalcony ? 'Kéo để nhìn quanh · Đi qua cửa để trở vào phòng' : next.view === 'inside' ? 'Chọn tầng để đổi cao độ' : next.view === 'plan' ? 'Mặt bằng bố trí ước lượng' : 'Chọn tầng để xem nội thất';
+  if (changed) $('#scene-status').textContent = `${onBalcony ? 'Ban công' : views[next.view]} · ${floorNames[next.floor]}`;
 }
 
 $$('button[data-design]').forEach(button => {
@@ -186,7 +205,7 @@ sync(state);
 saveSettings();
 try {
   viewer = createTownhouseViewer($('#canvas-container'), { palette: settings.palette, warmLight: settings.warmLight, onChange: next => {
-    if (next.floor !== state.floor || next.view !== state.view || next.workspaceId !== state.workspaceId) sync(next);
+    if (next.floor !== state.floor || next.view !== state.view || next.workspaceId !== state.workspaceId || next.balconyFloor !== state.balconyFloor) sync(next);
   }, onError: () => { $('#loading').hidden = true; $('#webgl-error').hidden = false; } });
   $('#loading').hidden = true;
   $('#viewer').dataset.ready = 'true';

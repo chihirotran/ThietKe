@@ -45,6 +45,7 @@ export function createTownhouseViewer(container, options = {}) {
   let view = 'exterior';
   let selectedFloor = 0;
   let workspaceId = null;
+  let balconyFloor = null;
   let disposed = false;
   let contextLost = false;
   let animationFrame = 0;
@@ -150,7 +151,7 @@ export function createTownhouseViewer(container, options = {}) {
   }
 
   function state() {
-    return { view, floor: selectedFloor, workspaceId, floorName: getFloorData()?.name, position: { x: camera.position.x, y: camera.position.y, z: camera.position.z } };
+    return { view, floor: selectedFloor, workspaceId, balconyFloor, floorName: getFloorData()?.name, position: { x: camera.position.x, y: camera.position.y, z: camera.position.z } };
   }
 
   function notify() { onChange(state()); }
@@ -422,6 +423,7 @@ export function createTownhouseViewer(container, options = {}) {
     if (!VIEWS.has(nextView) || disposed) return;
     clearMovement();
     workspaceId = null;
+    balconyFloor = null;
     view = nextView;
     frameView();
   }
@@ -430,6 +432,7 @@ export function createTownhouseViewer(container, options = {}) {
     if (!Number.isInteger(index) || index < 0 || index >= floors.length || disposed) return;
     clearMovement();
     workspaceId = null;
+    balconyFloor = null;
     selectedFloor = index;
     frameView(view === 'cutaway');
   }
@@ -440,9 +443,23 @@ export function createTownhouseViewer(container, options = {}) {
     if (!bedroom?.desk?.bounds || !bedroom.camera?.position || !floors[bedroom.floor]) return false;
     clearMovement();
     workspaceId = bedroom.id;
+    balconyFloor = null;
     selectedFloor = bedroom.floor;
     view = 'inside';
     frameView(false, bedroom);
+    return true;
+  }
+
+  function setBalcony(index = selectedFloor) {
+    if (disposed || !Number.isInteger(index)) return false;
+    const balcony = layout.floors[index]?.balcony;
+    if (!balcony?.bounds || !balcony.camera?.position || !floors[index]) return false;
+    clearMovement();
+    workspaceId = null;
+    balconyFloor = index;
+    selectedFloor = index;
+    view = 'inside';
+    frameView(false, { camera: balcony.camera, room: balcony.bounds });
     return true;
   }
 
@@ -567,14 +584,15 @@ export function createTownhouseViewer(container, options = {}) {
   }
 
   return {
-    setView, setFloor, setWorkspace, setMove, clearMovement, resize, zoom, dispose,
-    reset() { clearMovement(); workspaceId = null; frameView(); },
+    setView, setFloor, setWorkspace, setBalcony, setMove, clearMovement, resize, zoom, dispose,
+    reset() { clearMovement(); workspaceId = null; balconyFloor = null; frameView(); },
     setPalette(nextPalette) {
       if (!['oak', 'walnut'].includes(nextPalette) || nextPalette === palette || disposed) return;
       palette = nextPalette;
       clearMovement();
       buildHouse();
-      frameView(false, layout.bedrooms?.find(item => item.id === workspaceId));
+      const balcony = balconyFloor === null ? null : layout.floors[balconyFloor]?.balcony;
+      frameView(false, balcony ? { camera: balcony.camera, room: balcony.bounds } : layout.bedrooms?.find(item => item.id === workspaceId));
     },
     setWarmLight(enabled) { warmLight = Boolean(enabled); applyLighting(); },
     capture() { renderer.render(scene, activeCamera); return canvas.toDataURL('image/png'); },

@@ -198,17 +198,36 @@ export function createTownhouseHouse(options = {}) {
       for (let i = 0; i < 18; i++) decor(box(wallFaces.front, 0.026, 2.11, 0.045, -1.55 + i * 0.12, 1.14, front + 0.018, oak, 'entry-slat'));
       decor(box(wallFaces.front, 0.42, 0.05, 0.28, 1.27, 2.55, front - 0.25, glow, 'entry-light'));
     } else if (floor.index < 4) {
-      const balcony = addGroup(wallFaces.front, 'front-balcony');
-      rail(balcony, [inner.minX + 0.06, front - 0.08], [inner.maxX - 0.06, front - 0.08]);
-      for (const x of [inner.minX + 0.06, inner.maxX - 0.06]) box(balcony, 0.08, 3.1, 0.1, x, 1.55, 4.88, graphite, 'window-post');
-      for (const y of [0.04, 2.45]) box(balcony, inner.maxX - inner.minX, 0.07, 0.1, 0, y, 4.88, graphite, 'window-frame');
-      box(balcony, 1.35, 2.4, 0.02, inner.minX + 0.73, 1.25, 4.88, glass, 'front-glass');
-      box(balcony, 0.06, 2.46, 0.08, -0.36, 1.23, 4.88, graphite, 'window-mullion');
-      box(balcony, 0.78, 2.4, 0.02, inner.maxX - 0.42, 1.25, 4.88, glass, 'front-glass');
-      box(balcony, inner.maxX - inner.minX, 0.63, 0.13, 0, 2.78, 4.88, plaster, 'front-lintel');
-      box(balcony, floor.index === 2 ? 0.8 : 1.35, 0.32, 0.36, floor.index === 2 ? 1.23 : -1.06, 0.19, 5.12, stone, 'balcony-planter');
-      for (let i = 0; i < 3; i++) plant(balcony, (floor.index === 2 ? 1 : -1.5) + i * 0.23, 5.12, 0.28, 0.3);
-      if (floor.index === 2) for (let i = 0; i < 7; i++) box(balcony, 0.045, 2.5, 0.085, -1.71 + i * 0.115, 1.7, 5.31, oak, 'facade-screen');
+      const data = floor.balcony, r = data.bounds, door = data.door;
+      const balcony = addGroup(furniture, 'front-balcony');
+      balcony.userData.balcony = true;
+      for (const bounds of floor.outdoorRects) decor(slab(balcony, bounds, 0.018, 0.032, stone, 'balcony-deck'));
+      for (let z = r.minZ + 0.09; z < r.maxZ; z += 0.12) {
+        decor(box(balcony, r.maxX - r.minX - 0.06, 0.014, 0.09, center(r)[0], 0.038, z, oakDark, 'balcony-deck-board'));
+      }
+      const guard = addGroup(balcony, 'balcony-guard');
+      rail(guard, [inner.minX + 0.035, inner.maxZ - 0.04], [inner.maxX - 0.035, inner.maxZ - 0.04], 0, 1.2);
+      box(balcony, 1.25, 0.34, 0.3, -1.1, 0.205, 5.13, stone, 'balcony-planter', 0.012);
+      for (let i = 0; i < 4; i++) plant(balcony, -1.55 + i * 0.29, 5.13, 0.3, 0.37);
+      decor(box(balcony, 0.035, 0.11, 0.62, inner.maxX - 0.025, 1.92, 4.75, glow, 'balcony-wall-light'));
+      decor(box(balcony, 0.16, 0.008, 0.12, inner.maxX - 0.16, 0.04, 5.18, graphite, 'balcony-drain'));
+
+      const facade = addGroup(wallFaces.front, 'balcony-glazing');
+      const frontWidth = r.minX - inner.minX, frontCenter = (r.minX + inner.minX) / 2;
+      box(facade, frontWidth, 2.4, 0.025, frontCenter, 1.25, 4.88, glass, 'front-glass');
+      for (const x of [inner.minX + 0.035, frontCenter, r.minX]) box(facade, 0.055, 2.46, 0.075, x, 1.23, 4.88, graphite, 'window-post');
+      for (const y of [0.04, 2.45]) box(facade, frontWidth, 0.06, 0.075, frontCenter, y, 4.88, graphite, 'window-frame');
+      box(facade, frontWidth, 0.64, 0.12, frontCenter, 2.78, 4.88, plaster, 'front-lintel');
+      box(facade, 0.025, 2.4, 4.88 - r.minZ, r.minX, 1.25, (4.88 + r.minZ) / 2, glass, 'balcony-return-glass');
+      for (const y of [0.04, 2.45]) box(facade, 0.075, 0.06, 4.88 - r.minZ, r.minX, y, (4.88 + r.minZ) / 2, graphite, 'window-frame');
+      box(facade, 0.12, 0.64, 4.88 - r.minZ, r.minX, 2.78, (4.88 + r.minZ) / 2, plaster, 'balcony-return-lintel');
+      doorway(facade, r.minX, r.maxX, door.z, door.x, door.width, 'x', plaster, 'balcony-door-surround');
+      const leaf = addGroup(facade, 'balcony-open-door');
+      const hingeX = door.x + door.width / 2, leafCenterZ = door.z + door.width / 2;
+      box(leaf, 0.025, 2.06, door.width - 0.05, hingeX, 1.065, leafCenterZ, glass, 'balcony-door-glass');
+      for (const z of [door.z + 0.025, door.z + door.width - 0.025]) box(leaf, 0.04, 2.12, 0.04, hingeX, 1.06, z, graphite, 'balcony-door-frame');
+      for (const y of [0.03, 2.12]) box(leaf, 0.04, 0.04, door.width, hingeX, y, leafCenterZ, graphite, 'balcony-door-frame');
+      decor(box(leaf, 0.04, 0.2, 0.025, hingeX - 0.035, 1.03, door.z + door.width - 0.12, steel, 'balcony-door-handle'));
     } else rail(wallFaces.front, [inner.minX + 0.06, front - 0.08], [inner.maxX - 0.06, front - 0.08], 0, 1.1, glass);
 
     const lift = addGroup(partitions, 'elevator-shaft');
@@ -272,13 +291,12 @@ export function createTownhouseHouse(options = {}) {
       box(sofa, 0.13, 0.67, 2.16, -1.62, 0.52, 3.54, textile, 'sofa-back', 0.04);
       for (const z of [2.81, 3.54, 4.27]) box(sofa, 0.7, 0.14, 0.67, -1.2, 0.48, z, cream, 'sofa-cushion', 0.06);
       for (const z of [2.47, 4.61]) box(sofa, 0.83, 0.22, 0.12, -1.24, 0.55, z, textile, 'sofa-arm', 0.035);
-      decor(box(furniture, 1.6, 0.018, 2.25, -0.24, 0.018, 3.51, cream, 'living-rug', 0.06));
+      decor(box(furniture, 1.3, 0.018, 2.25, -0.4, 0.018, 3.51, cream, 'living-rug', 0.06));
       cylinder(furniture, 0.39, 0.065, -0.07, 0.4, 3.43, oak);
       cylinder(furniture, 0.19, 0.36, -0.07, 0.19, 3.43, oakDark);
-      box(furniture, 0.33, 0.32, 1.75, 1.59, 0.24, 3.48, oak, 'tv-console', 0.025);
-      box(furniture, 0.04, 0.8, 1.42, 1.76, 1.18, 3.48, graphite, 'television', 0.012);
-      decor(box(furniture, 0.01, 0.73, 1.33, 1.732, 1.18, 3.48, screen, 'television-screen'));
-      plant(furniture, 1.5, 4.62, 0.55);
+      box(furniture, 0.33, 0.32, 1.45, 1.59, 0.24, 3.25, oak, 'tv-console', 0.025);
+      box(furniture, 0.04, 0.8, 1.42, 1.76, 1.18, 3.25, graphite, 'television', 0.012);
+      decor(box(furniture, 0.01, 0.73, 1.33, 1.732, 1.18, 3.25, screen, 'television-screen'));
       box(furniture, 1.22, 0.055, 0.74, -0.5, 0.76, 1.44, oak, 'dining-table', 0.035);
       for (const x of [-0.96, -0.04]) for (const z of [1.18, 1.7]) box(furniture, 0.05, 0.74, 0.05, x, 0.37, z, oak);
       for (const x of [-0.9, -0.15]) { chair(furniture, x, 0.89, Math.PI, sage); chair(furniture, x, 1.99, 0, sage); }
@@ -303,7 +321,7 @@ export function createTownhouseHouse(options = {}) {
       wardrobe(furniture, { minX: -0.78, maxX: 0.69, minZ: -0.7, maxZ: -0.12 }, 2.65);
       cylinder(furniture, 0.19, 0.43, 0.23, 0.23, 4.38, oak);
       decor(cylinder(furniture, 0.1, 0.2, 0.23, 0.59, 4.38, glow));
-      decor(box(furniture, 2.1, 0.017, 2.35, -0.62, 0.021, 3.53, textile, 'bedroom-rug'));
+      decor(box(furniture, 2, 0.017, 2.35, -0.68, 0.021, 3.53, textile, 'bedroom-rug'));
     }
     if (floor.index === 3) {
       const frontBedroom = floor.bedrooms.find(bedroom => bedroom.id === 'bedroom-front');
