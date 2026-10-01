@@ -2,7 +2,10 @@
 
 Trình xem tương tác cho phương án cải tạo nhà có gác lửng, dựa trên ảnh/video hiện trạng và ảnh thiết kế do người dùng tạo bằng AI rồi chọn làm mẫu. Bản HTML ban đầu được giữ tại `original/index.html`.
 
-## Ba phương án riêng
+## Bốn phương án riêng
+
+- **04 · Nhà 5 tầng**: phương án xây mới cho gia đình 5–6 người, tầng trệt + 4 lầu, thang máy và thang bộ chữ U phía sau. Tầng trệt để xe máy và có phòng ngủ linh hoạt; lầu 1 khách–ăn–bếp; lầu 2 phòng ngủ chính và làm việc; lầu 3 hai phòng ngủ; lầu 4 đa năng, giặt phơi và sân vườn. Có giếng trời xuyên tầng, giường tránh hình chiếu bếp nấu. Mở tại http://localhost:5173/?design=townhouse. Mẫu này độc lập với ba bản có gác lửng.
+- Mẫu 04 có góc **Mặt ngoài**, **Cắt mở**, **Tách tầng**, **Mặt bằng** và **Bên trong**; nút tầng cho phép xem đủ năm cao độ. Trong nhà dùng W/A/S/D hoặc bảng di chuyển trên điện thoại, kéo để nhìn; chuyển cao độ bằng nút **Chọn tầng** (chưa mô phỏng đi liên tục trên thang hay cabin thang máy). Chiều cao đề xuất 3,2 m/tầng; kích thước thang và phòng là ước lượng. Khoảng 215 m² là tổng năm diện tích bao ngoài, chưa trừ thang, giếng trời và sân. Cần khảo sát, hồ sơ kết cấu và kiểm tra quy hoạch trước khi xây.
 
 - **01 · Theo ảnh mẫu**: giữ phong cách đã chọn, gồm gác thu gọn, lan can trắng, giường xanh nhạt, hệ tủ gỗ dưới gác và bàn hai màn hình. Mở trực tiếp tại http://localhost:5173/?design=reference.
 - **02 · Hiện đại**: đề xuất cho một người ở, gác thu gọn với lan can kính, giữ thang sắt hiện có, tủ phẳng không tay nắm, bàn làm việc liền hệ tủ, sofa bọc nệm và TV treo. Bề mặt trần phẳng, gỗ chỉ dùng làm điểm nhấn, ánh sáng dịu và vật liệu trung tính. Mở trực tiếp tại http://localhost:5173/?design=modern. Giữ bếp và phòng tắm/WC riêng ở phía sau; giữ tường cạnh thang hiện trạng.
@@ -96,6 +99,9 @@ Không chọn **Deploy from a branch → main / root**, vì đó là mã nguồn
 - `src/navigation.js`, `src/walking-world.js`: di chuyển theo hướng nhìn, lên/xuống thang, kiểm tra vật cản theo độ cao và giới hạn mép sàn.
 - `src/designs.js`: lựa chọn phương án và dữ liệu lưu riêng.
 - `src/main.js`: trình xem, góc nhìn và tương tác.
+- `src/bootstrap.js`: mở riêng trình xem nhà có gác hoặc nhà năm tầng theo đường dẫn/lựa chọn đã lưu.
+- `src/townhouse-layout.js`, `src/townhouse-house.js`: bố trí và mô hình năm tầng độc lập.
+- `src/townhouse-app.js`, `src/townhouse-viewer.js`, `src/townhouse.css`: chọn tầng, mặt ngoài, mặt cắt, mặt bằng và đi trong từng tầng.
 - `src/dimensions.js`: số đo mặc định và kiểm tra dữ liệu.
 - `src/style.css`: giao diện và bố cục cho điện thoại.
 - `public/references/`: tư liệu người dùng để đối chiếu.

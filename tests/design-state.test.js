@@ -34,3 +34,18 @@ test('keeps the proposed floor plan independent from both previous designs', () 
   proposed.dimensions.depth = 10;
   assert.equal(previous.dimensions.depth, 11);
 });
+
+test('recognizes the five-storey design without overwriting the three saved alternatives', () => {
+  assert.equal(resolveDesign('townhouse'), 'townhouse');
+  const designs = ['reference', 'modern', 'proposed', 'townhouse'];
+  assert.equal(new Set(designs.map(designStorageKey)).size, 4);
+  const storage = new Map(designs.map(design => [designStorageKey(design), JSON.stringify(loadDesignSettings(null))]));
+  const previous = designs.slice(0, 3).map(design => storage.get(designStorageKey(design)));
+  const townhouse = loadDesignSettings(storage.get(designStorageKey('townhouse')));
+  townhouse.palette = 'walnut';
+  townhouse.warmLight = false;
+  storage.set(designStorageKey('townhouse'), JSON.stringify(townhouse));
+  assert.deepEqual(designs.slice(0, 3).map(design => storage.get(designStorageKey(design))), previous);
+  assert.equal(loadDesignSettings(storage.get(designStorageKey('townhouse'))).palette, 'walnut');
+  assert.equal(loadDesignSettings(storage.get(designStorageKey('townhouse'))).warmLight, false);
+});

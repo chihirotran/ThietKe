@@ -277,6 +277,13 @@ $$('button[data-occupants]').forEach((button) => button.addEventListener('click'
 $$('button[data-design]').forEach(button => button.addEventListener('click', () => {
   if (currentDesign === button.dataset.design) return;
   saveSettings();
+  if (button.dataset.design === 'townhouse') {
+    const url = new URL(location.href);
+    url.searchParams.set('design', 'townhouse');
+    try { localStorage.setItem(designChoiceKey, 'townhouse'); } catch { /* Storage is optional. */ }
+    location.assign(url);
+    return;
+  }
   currentDesign = resolveDesign(button.dataset.design);
   const settings = readSettings(currentDesign);
   dimensions = settings.dimensions;
