@@ -13,6 +13,18 @@ const contains = (outer, inner) => inner.minX >= outer.minX - EPS && inner.maxX 
   && inner.minZ >= outer.minZ - EPS && inner.maxZ <= outer.maxZ + EPS;
 const supportedArea = (floor, bounds) => floor.floorRects.reduce((sum, slab) => sum + overlap(slab, bounds), 0);
 const footprint = box => ({ minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z });
+const rectangleCenter = r => ({ x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2 });
+
+function clearApproachPoints(chair, room, world) {
+  const points = [];
+  const center = rectangleCenter(chair);
+  for (let x = Math.max(chair.minX - 0.4, room.minX + 0.15); x <= Math.min(chair.maxX + 0.4, room.maxX - 0.15); x += 0.06) {
+    for (let z = Math.max(chair.minZ - 0.4, room.minZ + 0.15); z <= Math.min(chair.maxZ + 0.4, room.maxZ - 0.15); z += 0.06) {
+      if (Math.hypot(x - center.x, z - center.z) < 0.7 && canWalkAt({ x, z }, world)) points.push({ x, z });
+    }
+  }
+  return points;
+}
 
 function walkingWorld(floor, floorData) {
   const obstacles = [];
@@ -30,12 +42,13 @@ function walkingWorld(floor, floorData) {
 }
 
 function reaches(world, start, target) {
+  const targets = Array.isArray(target) ? target : [target];
   const step = 0.06;
   const queue = [[0, 0]], visited = new Set(['0,0']);
   for (let cursor = 0; cursor < queue.length; cursor++) {
     const [ix, iz] = queue[cursor];
     const position = { x: start.x + ix * step, z: start.z + iz * step };
-    if (Math.hypot(position.x - target.x, position.z - target.z) < step) return true;
+    if (targets.some(point => Math.hypot(position.x - point.x, position.z - point.z) < step)) return true;
     for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const next = [ix + dx, iz + dz], key = next.join(',');
       if (visited.has(key)) continue;
@@ -146,6 +159,84 @@ test('joins both stair flights through a half landing and leaves their upper arr
     `floor ${floor.index}: stair arrival falls into its opening`);
 });
 
+test('reduces the stair footprint while retaining two usable flights and full storey rise', () => {
+  const layout = getTownhouseLayout();
+  const stairs = layout.stairs;
+  const previousArea = (layout.inner.maxX - layout.inner.minX) * 1.95;
+  assert.ok(previousArea - area(stairs.bounds) >= 0.54, 'stair footprint does not free the proposed floor area');
+  assert.ok(stairs.width >= 0.85, 'space savings narrow the stair flight');
+  assert.equal(stairs.flights.length, 2);
+  for (const flight of stairs.flights) {
+    assert.equal(flight.steps, 9);
+    assert.equal(flight.goings, 8);
+    assert.ok((flight.bounds.maxX - flight.bounds.minX) / flight.goings >= 0.24,
+      'treads are too shallow for the proposed compact arrangement');
+    assert.ok(flight.bounds.maxZ - flight.bounds.minZ >= 0.85 - EPS);
+  }
+  assert.ok(Math.abs(stairs.rise * stairs.steps - layout.floorHeight) < EPS);
+});
+
+test('gives all four bedrooms a private desk with room for its chair', () => {
+  const layout = getTownhouseLayout();
+  const throughPassage = { minX: layout.stairs.arrival.minX, maxX: layout.inner.maxX,
+    minZ: layout.stairs.arrival.minZ, maxZ: layout.inner.maxZ };
+  for (const bedroom of layout.bedrooms) {
+    const { desk } = bedroom;
+    assert.ok(desk?.bounds && desk.clearance, `${bedroom.id}: no private workstation`);
+    const sides = [desk.bounds.maxX - desk.bounds.minX, desk.bounds.maxZ - desk.bounds.minZ].sort((a, b) => a - b);
+    assert.ok(sides[0] >= 0.5 - EPS && sides[1] >= 1 - EPS, `${bedroom.id}: desk is too small`);
+    assert.ok(contains(bedroom.room, desk.bounds), `${bedroom.id}: desk is outside its private room`);
+    assert.ok(contains(bedroom.room, desk.clearance), `${bedroom.id}: chair space is outside its private room`);
+    for (const occupied of [desk.bounds, desk.clearance]) {
+      assert.ok(overlap(occupied, bedroom.bed) < EPS, `${bedroom.id}: workstation conflicts with the bed`);
+      assert.ok(overlap(occupied, bedroom.wardrobe.bounds) < EPS, `${bedroom.id}: workstation conflicts with storage`);
+      if (bedroom.room.maxX < layout.inner.maxX) assert.ok(overlap(occupied, throughPassage) < EPS,
+        `${bedroom.id}: workstation occupies the shared passage`);
+      assert.ok(Math.abs(supportedArea(layout.floors[bedroom.floor], occupied) - area(occupied)) < EPS,
+        `${bedroom.id}: workstation is over a floor opening`);
+    }
+  }
+});
+
+test('renders four desks and chairs inside their bedrooms with a clear route from the landing', () => {
+  const house = createTownhouseHouse();
+  try {
+    house.group.updateMatrixWorld(true);
+    for (const bedroom of house.layout.bedrooms) {
+      const floor = house.floors[bedroom.floor], data = house.layout.floors[bedroom.floor];
+      const workspace = floor.furniture.getObjectByName(`${bedroom.id}-desk`);
+      assert.ok(workspace, `${bedroom.id}: private desk is absent from the model`);
+      const desktop = workspace.getObjectByName('desk-surface');
+      const chair = floor.furniture.getObjectByName(`${bedroom.id}-desk-chair`);
+      assert.ok(desktop && chair, `${bedroom.id}: workstation lacks a desktop or chair`);
+      const deskBox = new Box3().setFromObject(desktop), chairBox = new Box3().setFromObject(chair);
+      const deskFootprint = footprint(deskBox), chairFootprint = footprint(chairBox);
+      assert.ok(contains(bedroom.room, deskFootprint), `${bedroom.id}: rendered desk leaves the room`);
+      assert.ok(contains(bedroom.room, chairFootprint), `${bedroom.id}: rendered chair leaves the room`);
+      assert.ok(contains(bedroom.desk.clearance, chairFootprint), `${bedroom.id}: chair exceeds its allocated working space`);
+      assert.ok(contains(bedroom.desk.bounds, deskFootprint), `${bedroom.id}: rendered desktop leaves its allocated space`);
+      assert.ok(Math.abs(area(deskFootprint) - area(bedroom.desk.bounds)) < 1e-5,
+        `${bedroom.id}: actual desktop does not match its planned size`);
+      assert.ok(deskBox.min.y - data.elevation > 0.68 && deskBox.max.y - data.elevation < 0.82,
+        `${bedroom.id}: tabletop is not at working height`);
+      const bed = footprint(new Box3().setFromObject(floor.furniture.getObjectByName(`${bedroom.id}-bed`)));
+      for (const part of [deskFootprint, chairFootprint]) {
+        assert.ok(overlap(part, bed) < EPS, `${bedroom.id}: real chair or desk intersects the bed`);
+        floor.furniture.traverse(object => {
+          if (object.name !== 'wardrobe') return;
+          assert.ok(overlap(part, footprint(new Box3().setFromObject(object))) < EPS,
+            `${bedroom.id}: real chair or desk intersects a wardrobe`);
+        });
+      }
+      const world = walkingWorld(floor, data);
+      const approaches = clearApproachPoints(chairFootprint, bedroom.room, world);
+      assert.ok(approaches.length, `${bedroom.id}: no standing space remains beside the desk chair`);
+      assert.ok(reaches(world, { x: data.spawn[0], z: data.spawn[1] }, approaches),
+        `${bedroom.id}: no collision-free route from the landing to the workstation`);
+    }
+  } finally { house.dispose(); }
+});
+
 test('renders the planned shafts, beds and four stair connections in actual model geometry', () => {
   const house = createTownhouseHouse();
   try {
@@ -167,8 +258,18 @@ test('renders the planned shafts, beds and four stair connections in actual mode
       assert.ok(floor.group.getObjectByName('lightwell-enclosure'));
       assert.ok(floor.group.getObjectByName('elevator-shaft'));
       let treads = 0;
-      floor.stairs.traverse(mesh => { if (mesh.name === 'townhouse-stair-tread') treads++; });
-      assert.equal(treads, index < 4 ? house.layout.stairs.steps : 0);
+      const risers = [];
+      floor.stairs.traverse(mesh => {
+        if (mesh.name === 'townhouse-stair-tread') treads++;
+        if (mesh.name === 'townhouse-stair-riser') risers.push(new Box3().setFromObject(mesh));
+      });
+      assert.equal(treads, index < 4 ? house.layout.stairs.flights.reduce((sum, flight) => sum + flight.goings, 0) : 0);
+      assert.equal(risers.length, index < 4 ? house.layout.stairs.steps : 0);
+      if (risers.length) {
+        assert.ok(Math.abs(Math.min(...risers.map(box => box.min.y)) - expected.elevation) < 1e-5);
+        assert.ok(Math.abs(Math.max(...risers.map(box => box.max.y)) - expected.elevation - expected.height) < 1e-5,
+          `floor ${index}: the final stair riser does not reach the next storey`);
+      }
       floor.furniture.traverse(object => {
         if (!object.userData.bed) return;
         bedCount++;

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { getTownhouseLayout } from './townhouse-layout.js';
 import { addLaundryAppliances } from './laundry-fixtures.js';
+import { addBedroomWorkspace } from './bedroom-workspace.js';
 
 const center = r => [(r.minX + r.maxX) / 2, (r.minZ + r.maxZ) / 2];
 
@@ -124,15 +125,6 @@ export function createTownhouseHouse(options = {}) {
     }
     return item;
   }
-  function desk(parent, x, z, length = 1.4) {
-    const item = addGroup(parent, 'work-desk');
-    box(item, 0.58, 0.055, length, x, 0.75, z, oak, 'desktop', 0.015);
-    for (const dz of [-length / 2 + 0.08, length / 2 - 0.08]) box(item, 0.52, 0.72, 0.035, x, 0.36, z + dz, graphite);
-    box(item, 0.035, 0.4, 0.63, x - 0.1, 1.06, z, graphite, 'monitor-frame', 0.01);
-    decor(box(item, 0.006, 0.35, 0.58, x - 0.079, 1.06, z, screen, 'monitor'));
-    box(item, 0.24, 0.012, 0.36, x + 0.15, 0.791, z, graphite, 'keyboard');
-    chair(item, x + 0.55, z, -Math.PI / 2, sage);
-  }
   function sink(parent, x, z, w = 0.6) {
     box(parent, w, 0.03, 0.44, x, 0.916, z, steel, 'sink-rim', 0.04);
     box(parent, w - 0.09, 0.032, 0.35, x, 0.926, z, graphite, 'sink-bowl', 0.04);
@@ -157,13 +149,14 @@ export function createTownhouseHouse(options = {}) {
     const item = addGroup(parent, 'u-staircase');
     if (floor.index < 4) {
       layout.stairs.flights.forEach((flight, index) => {
-        const run = (flight.bounds.maxX - flight.bounds.minX) / flight.steps;
-        for (let i = 0; i < flight.steps; i++) {
+        const run = (flight.bounds.maxX - flight.bounds.minX) / flight.goings;
+        for (let i = 0; i < flight.goings; i++) {
           const x = index ? flight.bounds.minX + run * (i + 0.5) : flight.bounds.maxX - run * (i + 0.5);
           const y = (index * flight.steps + i + 1) * layout.stairs.rise;
           decor(box(item, run + 0.015, 0.08, 0.85, x, y - 0.04, center(flight.bounds)[1], oak, 'townhouse-stair-tread'));
           decor(box(item, 0.035, layout.stairs.rise, 0.84, index ? x - run / 2 : x + run / 2, y - layout.stairs.rise / 2, center(flight.bounds)[1], cream, 'townhouse-stair-riser'));
         }
+        decor(box(item, 0.035, layout.stairs.rise, 0.84, flight.top[0], flight.top[1] - layout.stairs.rise / 2, center(flight.bounds)[1], cream, 'townhouse-stair-riser'));
         for (const z of [flight.bounds.minZ + 0.045, flight.bounds.maxZ - 0.045]) {
           decor(bar(item, [flight.bottom[0], flight.bottom[1] + 0.03, z], [flight.top[0], flight.top[1] - 0.05, z], 0.045, graphite));
           bar(item, [flight.bottom[0], flight.bottom[1] + 0.95, z], [flight.top[0], flight.top[1] + 0.95, z], 0.018, graphite);
@@ -174,9 +167,9 @@ export function createTownhouseHouse(options = {}) {
         }
       });
       decor(slab(item, layout.stairs.landing, 1.55, 0.1, oak, 'stair-intermediate-landing'));
-      rail(item, [inner.minX + 0.08, -5.28], [inner.minX + 0.08, -3.47], 1.6, 0.95);
+      rail(item, [inner.minX + 0.08, layout.stairs.bounds.minZ + 0.07], [inner.minX + 0.08, layout.stairs.bounds.maxZ - 0.07], 1.6, 0.95);
     }
-    if (floor.index > 0) rail(item, [inner.minX + 0.03, -3.38], [0.91, -3.38]);
+    if (floor.index > 0) rail(item, [inner.minX + 0.03, layout.stairs.bounds.maxZ + 0.02], [0.91, layout.stairs.bounds.maxZ + 0.02]);
     return item;
   }
 
@@ -244,15 +237,26 @@ export function createTownhouseHouse(options = {}) {
     for (const x of [lr.minX + 0.04, lr.maxX]) decor(box(well, 0.035, 3, 0.035, x, 1.5, lr.maxZ, graphite));
 
     const stairs = stairAssembly(root, floor);
-    for (const bedroom of floor.bedrooms) bed(furniture, bedroom, floor.index === 3 ? textile : sage);
+    for (const bedroom of floor.bedrooms) {
+      bed(furniture, bedroom, floor.index === 3 ? textile : sage);
+      const storage = wardrobe(furniture, bedroom.wardrobe.bounds, floor.index === 0 ? 2.35 : 2.5, bedroom.wardrobe.facing);
+      storage.name = `${bedroom.id}-wardrobe`;
+      addBedroomWorkspace(furniture, bedroom, { wood: oak, graphite, cream, steel, glow, textile, sage, screen });
+    }
     if (floor.index === 0) {
-      doorway(partitions, inner.minX, 0.8, 2.55, 0.34, 0.82);
-      wall(partitions, 0.8, 0.4, 0.8, 2.55);
-      wall(partitions, inner.minX, 0.4, 0.8, 0.4);
-      wardrobe(furniture, { minX: -1.7, maxX: -0.4, minZ: 0.44, maxZ: 0.85 }, 2.35);
+      const room = floor.bedrooms[0].room;
+      wall(partitions, room.minX, room.maxZ, room.maxX, room.maxZ);
+      doorway(partitions, room.minZ, room.maxZ, room.maxX, 1.37, 0.82, 'z');
+      const wellEdge = layout.lightwell.bounds.maxX;
+      wall(partitions, room.minX, room.minZ, wellEdge, room.minZ, 0.98);
+      wall(partitions, wellEdge, room.minZ, room.maxX, room.minZ);
+      const windowWidth = wellEdge - room.minX;
+      box(partitions, windowWidth, 0.43, 0.1, room.minX + windowWidth / 2, 2.765, room.minZ, plaster, 'guest-window-head');
+      box(partitions, windowWidth - 0.08, 1.52, 0.018, room.minX + windowWidth / 2, 1.765, room.minZ, glass, 'guest-lightwell-window');
+      for (const y of [0.98, 2.55]) box(partitions, windowWidth, 0.035, 0.13, room.minX + windowWidth / 2, y, room.minZ, oak, 'guest-window-frame');
       box(furniture, 0.39, 0.5, 1.6, inner.minX + 0.24, 0.25, 3.95, oak, 'entry-bench', 0.025);
       for (let i = 0; i < 6; i++) decor(box(furniture, 0.05, 1.9, 0.045, inner.minX + 0.05, 1.4, 3.3 + i * 0.23, oak, 'entry-panel'));
-      for (const z of [3.25, 4.4]) {
+      for (const z of [3.42, 4.52]) {
         const bike = addGroup(furniture, 'parked-scooter'); bike.position.set(-0.65, 0, z); bike.rotation.y = Math.PI / 2;
         for (const wheelZ of [-0.54, 0.54]) { const wheel = cylinder(bike, 0.235, 0.12, 0, 0.24, wheelZ, graphite); wheel.rotation.z = Math.PI / 2; }
         box(bike, 0.39, 0.32, 0.9, 0, 0.45, -0.02, sage, 'scooter-body', 0.09);
@@ -297,22 +301,16 @@ export function createTownhouseHouse(options = {}) {
       doorway(partitions, inner.minX, inner.maxX, 1.5, 1.28, 0.9);
       wardrobe(furniture, { minX: -1.72, maxX: -1.12, minZ: 0.4, maxZ: 1.4 }, 2.65, '+x');
       wardrobe(furniture, { minX: -0.78, maxX: 0.69, minZ: -0.7, maxZ: -0.12 }, 2.65);
-      desk(furniture, -0.58, 0.76, 1.14);
-      for (const x of [-1.57, 0.59]) {
-        cylinder(furniture, 0.21, 0.43, x, 0.23, 3.96, oak);
-        decor(cylinder(furniture, 0.11, 0.2, x, 0.59, 3.96, glow));
-      }
-      wardrobe(furniture, { minX: 1.21, maxX: 1.74, minZ: 2.7, maxZ: 4.5 }, 2.65, '-x');
-      decor(box(furniture, 2.2, 0.017, 2.5, -0.36, 0.021, 3.16, textile, 'bedroom-rug'));
+      cylinder(furniture, 0.19, 0.43, 0.23, 0.23, 4.38, oak);
+      decor(cylinder(furniture, 0.1, 0.2, 0.23, 0.59, 4.38, glow));
+      decor(box(furniture, 2.1, 0.017, 2.35, -0.62, 0.021, 3.53, textile, 'bedroom-rug'));
     }
     if (floor.index === 3) {
-      doorway(partitions, inner.minX, inner.maxX, 2.45, 1.28, 0.9);
-      doorway(partitions, -0.7, 2.4, 0.8, -0.1, 0.85, 'z');
-      wall(partitions, -0.94, -0.7, 0.8, -0.7);
-      wardrobe(furniture, { minX: -0.8, maxX: 0.64, minZ: -0.67, maxZ: -0.16 }, 2.5);
-      box(furniture, 1.05, 0.035, 0.23, -0.86, 1.55, 2.52, oak, 'bedroom-book-shelf');
-      wardrobe(furniture, { minX: 1.27, maxX: 1.73, minZ: 3.15, maxZ: 4.52 }, 2.5, '-x');
-      decor(box(furniture, 0.015, 0.6, 0.65, -1.749, 1.6, 3.15, oakDark, 'bedroom-art'));
+      const frontBedroom = floor.bedrooms.find(bedroom => bedroom.id === 'bedroom-front');
+      const rearBedroom = floor.bedrooms.find(bedroom => bedroom.id === 'bedroom-rear');
+      doorway(partitions, inner.minX, inner.maxX, frontBedroom.room.minZ, 1.28, 0.9);
+      doorway(partitions, rearBedroom.room.minZ, frontBedroom.room.minZ, rearBedroom.room.maxX, 0.36, 0.82, 'z');
+      wall(partitions, -0.94, rearBedroom.room.minZ, rearBedroom.room.maxX, rearBedroom.room.minZ);
     }
     if (floor.index === 4) {
       doorway(partitions, inner.minX, inner.maxX, 1.95, 0.9, 0.94);
@@ -348,8 +346,10 @@ export function createTownhouseHouse(options = {}) {
   const roofRects = layout.floors[4].floorRects.filter(r => r.minZ < 1.9).map(r => ({ ...r, maxZ: Math.min(r.maxZ, 1.9) }));
   for (const r of roofRects) slab(roof, r, layout.totalHeight, 0.16, stone, 'roof-slab');
   slab(roof, layout.elevator.bounds, layout.totalHeight, 0.16, stone, 'elevator-roof');
-  const stairSky = box(roof, 2.76, 0.04, 1.95, -0.425, layout.totalHeight + 0.02, -4.375, glass, 'stairwell-skylight'); decor(stairSky);
-  for (const x of [-1.78, -0.42, 0.94]) box(roof, 0.035, 0.08, 1.95, x, layout.totalHeight + 0.045, -4.375, graphite, 'skylight-frame');
+  const stairDepth = layout.stairs.bounds.maxZ - layout.stairs.bounds.minZ;
+  const stairCenterZ = center(layout.stairs.bounds)[1];
+  const stairSky = box(roof, 2.76, 0.04, stairDepth, -0.425, layout.totalHeight + 0.02, stairCenterZ, glass, 'stairwell-skylight'); decor(stairSky);
+  for (const x of [-1.78, -0.42, 0.94]) box(roof, 0.035, 0.08, stairDepth, x, layout.totalHeight + 0.045, stairCenterZ, graphite, 'skylight-frame');
   const apron = addGroup(group, 'entry-threshold');
   box(apron, layout.width, 0.12, 0.46, 0, -0.12, front + 0.2, stone, 'entry-step');
   function setPalette(palette = 'oak') { oak.color.set(palette === 'walnut' ? '#83654f' : '#b89167'); }

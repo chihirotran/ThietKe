@@ -44,6 +44,7 @@ export function createTownhouseViewer(container, options = {}) {
   let warmLight = options.warmLight !== false;
   let view = 'exterior';
   let selectedFloor = 0;
+  let workspaceId = null;
   let disposed = false;
   let contextLost = false;
   let animationFrame = 0;
@@ -149,7 +150,7 @@ export function createTownhouseViewer(container, options = {}) {
   }
 
   function state() {
-    return { view, floor: selectedFloor, floorName: getFloorData()?.name, position: { x: camera.position.x, y: camera.position.y, z: camera.position.z } };
+    return { view, floor: selectedFloor, workspaceId, floorName: getFloorData()?.name, position: { x: camera.position.x, y: camera.position.y, z: camera.position.z } };
   }
 
   function notify() { onChange(state()); }
@@ -296,7 +297,7 @@ export function createTownhouseViewer(container, options = {}) {
     house.setWarmLight?.(warmLight);
   }
 
-  function createWalkingWorld() {
+  function createWalkingWorld(workspace = null) {
     const floor = floors[selectedFloor];
     const data = getFloorData();
     const baseY = elevation();
@@ -320,10 +321,18 @@ export function createTownhouseViewer(container, options = {}) {
     for (const blocked of data.blockedRects || []) obstacles.push(blocked);
     walkingWorld = { floors: floorsRects, obstacles };
     const roomId = ['entry', 'living', 'master', 'bedroom-front', 'terrace'][selectedFloor];
-    const cameraHint = data.rooms?.find(room => room.id === roomId)?.camera || data.insideCamera || data.camera;
+    const cameraHint = workspace?.camera || data.rooms?.find(room => room.id === roomId)?.camera || data.insideCamera || data.camera;
     const supplied = cameraHint?.position || data.spawn;
     const desired = Array.isArray(supplied) ? { x: supplied[0], z: supplied.length === 2 ? supplied[1] : supplied[2] } : { x: layout.width * 0.25, z: layout.depth / 2 - 1.25 };
     const candidates = [desired];
+    if (workspace?.room) {
+      const roomCandidates = [];
+      for (let z = workspace.room.minZ + 0.18; z < workspace.room.maxZ - 0.18; z += 0.2) {
+        for (let x = workspace.room.minX + 0.18; x < workspace.room.maxX - 0.18; x += 0.2) roomCandidates.push({ x, z });
+      }
+      roomCandidates.sort((a, b) => Math.hypot(a.x - desired.x, a.z - desired.z) - Math.hypot(b.x - desired.x, b.z - desired.z));
+      candidates.push(...roomCandidates);
+    }
     if (Array.isArray(data.spawn)) candidates.push({ x: data.spawn[0], z: data.spawn[1] });
     for (let z = layout.depth / 2 - 0.65; z > -layout.depth / 2 + 0.5; z -= 0.3) {
       for (let x = layout.width / 2 - 0.4; x > -layout.width / 2 + 0.35; x -= 0.3) candidates.push({ x, z });
@@ -331,9 +340,10 @@ export function createTownhouseViewer(container, options = {}) {
     const spawn = candidates.find(point => canWalkAt(point, walkingWorld));
     if (!spawn) throw new Error(`No walkable starting position on floor ${selectedFloor + 1}`);
     camera.position.set(spawn.x, baseY + EYE_HEIGHT, spawn.z);
-    const target = spawn === desired ? cameraHint?.target : null;
+    const desk = workspace?.desk?.bounds;
+    const target = desk ? [(desk.minX + desk.maxX) / 2, 1, (desk.minZ + desk.maxZ) / 2] : spawn === desired ? cameraHint?.target : null;
     yaw = target ? Math.atan2(target[0] - spawn.x, spawn.z - target[2]) : data.insideYaw ?? (spawn.z < 0 ? Math.PI : 0);
-    pitch = target ? THREE.MathUtils.clamp(Math.atan2(target[1] - EYE_HEIGHT, Math.hypot(target[0] - spawn.x, target[2] - spawn.z)), -0.25, 0.25) : 0;
+    pitch = target ? THREE.MathUtils.clamp(Math.atan2(target[1] - EYE_HEIGHT, Math.hypot(target[0] - spawn.x, target[2] - spawn.z)), workspace ? -1.2 : -0.25, 0.25) : 0;
     updateLook();
   }
 
@@ -393,7 +403,7 @@ export function createTownhouseViewer(container, options = {}) {
     planControls.update();
   }
 
-  function frameView(focusFloor = false) {
+  function frameView(focusFloor = false, workspace = null) {
     controls.enabled = view !== 'plan' && view !== 'inside';
     planControls.enabled = view === 'plan';
     activeCamera = view === 'plan' ? planCamera : camera;
@@ -401,7 +411,7 @@ export function createTownhouseViewer(container, options = {}) {
     applyProjectionOffset(activeCamera);
     camera.updateProjectionMatrix();
     applyVisibility();
-    if (view === 'inside') createWalkingWorld();
+    if (view === 'inside') createWalkingWorld(workspace);
     else if (view === 'plan') fitPlan();
     else fitPerspective(focusFloor);
     applyLighting();
@@ -411,6 +421,7 @@ export function createTownhouseViewer(container, options = {}) {
   function setView(nextView) {
     if (!VIEWS.has(nextView) || disposed) return;
     clearMovement();
+    workspaceId = null;
     view = nextView;
     frameView();
   }
@@ -418,8 +429,21 @@ export function createTownhouseViewer(container, options = {}) {
   function setFloor(index) {
     if (!Number.isInteger(index) || index < 0 || index >= floors.length || disposed) return;
     clearMovement();
+    workspaceId = null;
     selectedFloor = index;
     frameView(view === 'cutaway');
+  }
+
+  function setWorkspace(bedroomId) {
+    if (disposed) return false;
+    const bedroom = layout.bedrooms?.find(item => item.id === bedroomId);
+    if (!bedroom?.desk?.bounds || !bedroom.camera?.position || !floors[bedroom.floor]) return false;
+    clearMovement();
+    workspaceId = bedroom.id;
+    selectedFloor = bedroom.floor;
+    view = 'inside';
+    frameView(false, bedroom);
+    return true;
   }
 
   function setMove(action, held, pointerId = 'touch') {
@@ -543,14 +567,14 @@ export function createTownhouseViewer(container, options = {}) {
   }
 
   return {
-    setView, setFloor, setMove, clearMovement, resize, zoom, dispose,
-    reset() { clearMovement(); frameView(); },
+    setView, setFloor, setWorkspace, setMove, clearMovement, resize, zoom, dispose,
+    reset() { clearMovement(); workspaceId = null; frameView(); },
     setPalette(nextPalette) {
       if (!['oak', 'walnut'].includes(nextPalette) || nextPalette === palette || disposed) return;
       palette = nextPalette;
       clearMovement();
       buildHouse();
-      frameView();
+      frameView(false, layout.bedrooms?.find(item => item.id === workspaceId));
     },
     setWarmLight(enabled) { warmLight = Boolean(enabled); applyLighting(); },
     capture() { renderer.render(scene, activeCamera); return canvas.toDataURL('image/png'); },

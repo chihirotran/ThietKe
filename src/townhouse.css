@@ -17,6 +17,12 @@ body[data-design="townhouse"] .project-intro { padding-bottom: 23px; }
 .floor-program > span { font-size: 10px; font-weight: 600; color: var(--accent); }
 .floor-program p, .townhouse-copy { color: var(--muted); font-size: 11px; line-height: 1.9; margin-top: 10px; }
 .floor-program ul { display: grid; gap: 7px; padding-left: 14px; margin: 12px 0 0; font-size: 10px; line-height: 1.6; }
+.workspace-shortcuts { display: grid; gap: 8px; margin-top: 16px; }
+.workspace-shortcuts:empty { display: none; }
+.workspace-shortcuts button { min-height: 60px; padding: 11px 12px; text-align: left; border: 1px solid #c7d8ce; border-radius: 5px; background: #f3f7f2; color: var(--accent); }
+.workspace-shortcuts button:hover, .workspace-shortcuts button[aria-pressed="true"] { background: #e2ece1; border-color: var(--accent); }
+.workspace-shortcuts strong { display: block; font-size: 10px; line-height: 1.7; font-weight: 600; }
+.workspace-shortcuts span { display: block; margin-top: 3px; font-size: 9px; color: var(--muted); }
 body[data-design="townhouse"] .sidebar-footer { margin-top: 15px; display: block; }
 .townhouse-viewer .view-heading { top: 27px; left: 29px; }
 .townhouse-viewer .view-heading h2 { font-size: 23px; }
